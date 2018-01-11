@@ -6,7 +6,7 @@ class Loser {
   float LOSER_INIT_X=0, LOSER_INIT_Y=280;
   float jumpCount, runCount; //runCount change picture when loser is moving
   
-  final int PLAYER_MAX_HEALTH = 5, JUMP_TIME=22; //jumptime will effect x&y distance While jumpSpeed only effect y distance
+  final int LOSER_MAX_HEALTH = 5, JUMP_TIME=22; //jumptime will effect x&y distance While jumpSpeed only effect y distance
   final int loserWidth = 60;
   final int LOSER_RUN_CHANGE=10;
 

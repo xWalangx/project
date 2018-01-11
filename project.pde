@@ -1,4 +1,4 @@
-//change in 2018/01/10
+//change in 2018/01/11
 PImage background1, background2, background3, background4;
 PImage startScene, loseScene1, loseScene2, loseScene3;
 PImage startButton1, startButton2, returnButton;
@@ -6,24 +6,30 @@ PImage loserLeft, loserRight, loserRightJump, loserLeftJump, loserRight1, loserR
 PImage dadImg, momImg, girlImg;
 PImage knife, knifeShoot, gas, card;
 PImage ghost, head;
-PImage noodleImg, beerImg ,photoImg;
+PImage noodleImg, beerImg, photoImg;
 PImage bloodBar1, bloodBar2, bloodBar3, bloodBar4, bloodBar5;
 PImage mom1, mom2, dad1, dad2, girl1, girl2;
 PImage information1, information2;
 PImage eyeball, hand;
 PImage blood;
-int gameTimer;
+PImage explain,stage1,stage2,stage3;
+PImage soundiconOFF,soundiconON,stopicon;
 
 final int GAME_START = 0, GAME_RUN1 = 1, GAME_RUN2 = 2, GAME_RUN3 = 3, GAME_OVER = 4, GAME_WIN = 5, GAME_INFO = 6;
 int gameState = 0;
 int currentState;
 final int GO_UP =0, GO_RIGHT =1, GO_DOWN =2, GO_LEFT =3;
 
+final int stageShowTime = 300;
+int stageTime,explainTime;
+
 boolean leftState = false;
 boolean rightState = false;
 boolean upState = false;
 boolean startChase = false;
 boolean loserHurt = false;
+boolean disPlayExplain = true;
+boolean disPlayStage =true;
 
 final float BACKGROUND1_WIDTH=1600;
 final float BACKGROUND2_WIDTH=2000;
@@ -36,8 +42,8 @@ int bloodDisplayBoundary;
 //sound
 import ddf.minim.*;
 Minim minim;
-AudioPlayer sound_clock,sound_end,song;
-AudioSample sound_ghost,sound_hurt;
+AudioPlayer sound_clock, sound_end, song;
+AudioSample sound_ghost, sound_hurt;
 
 Loser loser=new Loser();
 Mom mom = new Mom();
@@ -54,16 +60,16 @@ Eyeball eyeball3 = new Eyeball(2000, 330);
 Hand[] hands = new Hand[10];
 Card[] cards = new Card[9];
 
-Beer beer = new Beer();
-Noodle noodle = new Noodle();
+Beer [] beers = new Beer[3];
+Noodle[] noodles = new Noodle[2];
 Photo photo = new Photo();
 
 void setup() {
-  size(800, 480,P2D);
+  size(800, 480);
   startScene = loadImage("img/startScene/startScene.png");
   startButton1 = loadImage("img/startScene/startButton1.png");
   startButton2 = loadImage("img/startScene/startButton2.png");
-  background1 = loadImage("img/background1.jpg");
+  background1 = loadImage("img/background/background1.jpg");
   background2 = loadImage("img/background2.jpg");
   background3 = loadImage("img/background3.jpg");
   loseScene1 = loadImage("img/loseScene/gameLose1.png");
@@ -99,24 +105,33 @@ void setup() {
   girl2 = loadImage("img/people/girl2.png");
   information1 = loadImage("img/startScene/information1.png");
   information2 = loadImage("img/startScene/information2.png");
+  explain = loadImage("img/startScene/explain.png");
+  stage1 = loadImage("img/startScene/stage1.png");
+  stage2 = loadImage("img/startScene/stage2.png");
+  stage3 = loadImage("img/startScene/stage3.png");
   eyeball = loadImage("img/horribleItem/eyeBall.png");
-  hand = loadImage("img/horribleItem/hand.png");
-  
+  hand = loadImage("img/horribleItem/handlong.png");
+
   //bloodItem
   beerImg = loadImage("img/bloodItem/beerTaiwan.png");
   noodleImg = loadImage("img/bloodItem/instantNoodles.png");
   photoImg = loadImage("img/bloodItem/photo.png");
-  
+
   //sound
   minim = new Minim(this);
   sound_clock = minim.loadFile("sound/terror_clock.mp3");
   sound_end = minim.loadFile("sound/horror_piano chord.mp3");
   song = minim.loadFile("sound/THE OMEN.mp3");
-  sound_hurt = minim.loadSample("sound/hurt.mp3",128);
-  sound_ghost = minim.loadSample("sound/ghost_attack.mp3",128);
+  sound_hurt = minim.loadSample("sound/hurt.mp3", 128);
+  sound_ghost = minim.loadSample("sound/ghost_attack.mp3", 128);
   //blood
   blood = loadImage("img/blood.png");
+  //icons
+  soundiconOFF = loadImage("img/icons/soundiconOFF.png");
+  soundiconON = loadImage("img/icons/soundiconON.png");
+  stopicon = loadImage("img/icons/stopicon.png");
   
+
 
   //start scene initX
   mom.peopleX=300;
@@ -127,21 +142,41 @@ void setup() {
   // Initialize hands
   for (int i = 1; i < hands.length; i++) {
     float newX = i*250;
-    float newY = floor(random(390, 460));
+    float newY = floor(random(362, 440));
     hands[i]= new Hand(newX, newY);
   }
 
   // Initialize cards
   for (int i = 1; i < cards.length; i++) {
-    float newX = i*250+125;
+    float newX = i*250+150;
     float newY = floor(random(-90, -60));
     float newYSpeed=int (random(2, 5));
-    cards[i]= new Card(newX, newY, newYSpeed);
+    float newXSpeed=int(random(-2, 2));
+    while (newXSpeed==0) {
+      newXSpeed=int(random(-2, 2));
+    }
+    cards[i]= new Card(newX, newY, newYSpeed, newXSpeed);
   }
+  //Initialize bloodItems
+  //noodles
+  for (int i = 1; i < noodles.length; i++) {    
+    float newX = random(400, 800);
+    float newY = 370; 
+    noodles[i]= new Noodle(newX, newY);
+  }
+  //beers
+  for (int i = 1; i < beers.length; i++) {    
+    float newX = 2000;
+    float newY = 370; 
+    float newXSpeed=random(0.5, 3);
+    beers[i]= new Beer(newX, newY, newXSpeed);
+  }
+  //Display time
+  stageTime = 420;
+  explainTime = 300;
 }
 
 void draw() {
-  
   switch(gameState) {
   case GAME_START:
     //backgroundsound
@@ -153,7 +188,7 @@ void draw() {
     if (mouseX>=345 && mouseX<=470 && mouseY>=200 && mouseY<=235) {
       image(startButton2, 0, 0);
       if (mousePressed) {
-        gameState=GAME_INFO;
+        gameState=GAME_RUN1;
       }
     }
     //running people
@@ -166,7 +201,9 @@ void draw() {
     break;
 
   case GAME_RUN1:
-    gameTimer ++;
+    //state
+    currentState = GAME_RUN1;
+    
     //backgroundsound
     sound_clock.pause();
     sound_end.pause();
@@ -210,10 +247,13 @@ void draw() {
 
     //player 
     loser.update();
-    
+
     //bloodItem
-    noodle.display();
-    noodle.checkCollision(loser);
+    for (Noodle i : noodles) {
+      if (i == null) continue;
+      i.display();
+      i.checkCollision(loser);
+    }  
 
     //check game state
     if (loser.x>=1510) {
@@ -221,13 +261,12 @@ void draw() {
       gameState = GAME_RUN2;
       startChase=false;
       song.pause();
+      disPlayStage = true;
     }
-
-    
     popMatrix();
     //end of translate
-    
-    
+
+
 
     //bloodBar
     if (loser.health<=1) {
@@ -241,13 +280,25 @@ void draw() {
     } else {
       image(bloodBar5, 0, 0);
     }
-    //text
-    drawPointUI();
+    //info icon
+    image(stopicon,760,10);
+    if (mouseX>=760 && mouseX<=790 && mouseY>=10 && mouseY<=40) {
+      //image(information2, 0, 0);
+      if (mousePressed) {
+        gameState=GAME_INFO;
+      }
+    }
+    //show explain and stage name
+    stageShow(stage1);
+    explainShow(explain);
+    
+    
 
     break;
 
   case GAME_RUN2:
-  gameTimer ++;
+    //state
+    currentState = GAME_RUN2;
     //background sound
     sound_end.pause();
     song.play();
@@ -290,18 +341,23 @@ void draw() {
     eyeball3.checkCollision(loser);
 
     //bloodItem
-    beer.display();
-    beer.checkCollision(loser);
-    
-    
+    for (Beer i : beers) {
+      if (i == null) continue;
+      i.display();
+      i.checkCollision(loser);
+    }  
+
+
     //check game state
     if (loser.x>=BACKGROUND2_WIDTH-loser.w) {
       //if loser reach the end
       loser.reset();
       gameState=GAME_RUN3;
       startChase = false;
+      song.pause();
+      disPlayStage = true;
     }
-    
+
     popMatrix();
     //end of translate
 
@@ -317,17 +373,27 @@ void draw() {
     } else {
       image(bloodBar5, 0, 0);
     }
-    
-    //text
-    drawPointUI();
-    
+    //info icon
+    image(stopicon,760,10);
+    if (mouseX>=760 && mouseX<=790 && mouseY>=10 && mouseY<=40) {
+      //image(information2, 0, 0);
+      if (mousePressed) {
+        gameState=GAME_INFO;
+      }
+    }
+    //show stage
+    stageShow(stage2);
+
+
 
     break;
 
   case GAME_RUN3:
-  gameTimer ++;
+    //state
+    currentState = GAME_RUN3;
     //background sound
     sound_end.pause();
+    song.play();
     bloodDisplayBoundary=2400-430;
     //back Ground translate
     if (loser.x >= BACKGROUND3_WIDTH-430) {
@@ -369,7 +435,7 @@ void draw() {
         i.checkCollision(loser);
       }
     }
-    
+
     //bloodItem
     photo.display();
     photo.checkCollision(loser);
@@ -394,9 +460,16 @@ void draw() {
       loser.reset();
       gameState = GAME_WIN;
     }
-    
-    //text
-    drawPointUI();
+    //info icon
+    image(stopicon,760,10);
+    if (mouseX>=760 && mouseX<=790 && mouseY>=10 && mouseY<=40) {
+      //image(information2, 0, 0);
+      if (mousePressed) {
+        gameState=GAME_INFO;
+      }
+    }
+    //show stage
+    stageShow(stage3);
 
 
     break;
@@ -405,20 +478,20 @@ void draw() {
     //background music
     song.pause();
     sound_end.play();
-    
+
     //detect current State and show gameover scene individually
     //println(currentState);
     if (currentState==GAME_RUN1) {
       image(loseScene1, 0, 0);
     } else if (currentState==GAME_RUN2) {
       image(loseScene2, 0, 0);
-    } else if(currentState==GAME_RUN3){
+    } else if (currentState==GAME_RUN3) {
       image(loseScene3, 0, 0);
     }
 
     //image(returnButton, 0, 0);
     if (mouseX>=345 && mouseX<=460 && mouseY>=405 && mouseY<=445) {
-      image(returnButton,0,0);
+      image(returnButton, 0, 0);
       if (mousePressed) {
         //changee state
         gameState=currentState;
@@ -434,11 +507,17 @@ void draw() {
         eyeball2.reset();
         eyeball3.reset();
         for (Card i : cards) {
-         if (i == null) continue;
+          if (i == null) continue;
           i.reset();
         }
-        beer.reset();
-        noodle.reset();
+        for (Noodle i : noodles) {
+          if (i == null) continue;
+          i.reset();
+        }
+        for (Beer i : beers) {
+          if (i == null) continue;
+          i.reset();
+        }
         photo.reset();
       }
     }
@@ -452,15 +531,18 @@ void draw() {
 
   case GAME_INFO:
     //display info image
-    image(information1, 0, 0);
-    if (mouseX>=705 && mouseX<=800 && mouseY>=0 && mouseY<=55) {
-      image(information2, 0, 0);
+    //image(information1, 0, 0);
+    image(explain,0,0);
+    image(stopicon,720,10);
+    if (mouseX>=720 && mouseX<=750 && mouseY>=10 && mouseY<=40) {
+      //image(information2, 0, 0);
       if (mousePressed) {
-        gameState=GAME_RUN1;
+        gameState=currentState;
       }
     }
 
     break;
+    
   }
 }
 
@@ -500,11 +582,23 @@ void keyReleased() {
   }
 }
 
-void drawPointUI(){
-  
-  String pointString = str(gameTimer);
-  fill(242,26,26);
-  textSize(45);
-  text(pointString, width/2-70, 50);
-  
+void stageShow(PImage img1){
+  if(disPlayStage){
+      stageTime--;
+      image(img1,0,0) ;
+    } 
+    if(stageTime<0){
+      disPlayStage = false;
+      stageTime=120;
+    }
+}
+void explainShow(PImage img2){
+  if(disPlayExplain){
+      explainTime--;
+      image(img2,0,0) ;
+    } 
+    if(explainTime<0){
+      disPlayExplain = false;
+      explainTime=300;
+    }
 }

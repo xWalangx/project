@@ -1,7 +1,7 @@
 class Hand {
-  float handStartY =480-20;
-  float handEndY =390;
-  float w=60, h=90;
+  float handStartY =440;
+  float handEndY =362;
+  float w=60, h=120;
   float speed=1;
   float handHurtTime=120;
 

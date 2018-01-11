@@ -2,14 +2,14 @@ class Card {
   float cardStartX =35;
   float cardEndX =-35;
   float w=20, h=30;
-  float xSpeed=1;
   float cardHurtTime=120;
-
-  float x, y,x2,ySpeed;
-  Card(float x, float y,float ySpeed) {
+  float x, y,x2,ySpeed,xSpeed;
+  
+  Card(float x, float y,float ySpeed,float xSpeed) {
     this.x = x;
     this.y = y;
     this.ySpeed = ySpeed;
+    this.xSpeed= xSpeed;
     x2=0;
   }
   void show() {
@@ -29,8 +29,6 @@ class Card {
       if (isHit(x+x2, y, w, h, loser.x, loser.y, loser.w, loser.h)) {
         loser.hurt();
         cardHurtTime=120;
-        //sound
-        sound_hurt.trigger();
       }
     }
   }

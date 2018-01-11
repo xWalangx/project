@@ -1,7 +1,7 @@
 class Loser {
    float x, y;
   float loserSpeed=3, loserJumpSpeed=9, loserDownSpeed=8;
-  float w = 60, h = 120;
+  float w = 45, h = 120;
   int health = 0;
   float LOSER_INIT_X=0, LOSER_INIT_Y=280;
   float jumpCount, runCount; //runCount change picture when loser is moving
@@ -45,6 +45,8 @@ class Loser {
          image(blood,bloodDisplayBoundary-370,0) ;
       }else if(loser.x>370){
          image(blood,loser.x-370,0);
+      }else if(loser.x<width){
+         image(blood,0,0);
       }
     } 
     if(bloodDisplayTime<0){
@@ -136,6 +138,7 @@ class Loser {
     loserHurt = true;
     if (health == 0) {
       gameState = GAME_OVER;
+      bloodDisplayTime = 0;
     }
     return currentState;
   }

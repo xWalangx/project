@@ -19,7 +19,7 @@ PImage story2_1, story2_2, story2_3;
 PImage story3_1, story3_2, story3_3, story4_1, story4_2, story4_3, story4_4, story4_5;
 
 final int GAME_START = 0, GAME_RUN1 = 1, GAME_RUN2 = 2, GAME_RUN3 = 3, GAME_OVER = 4, GAME_WIN = 5, GAME_INFO = 6, GAME_STORY=7;
-int gameState = 3;
+int gameState = 1;
 int currentState;
 final int GO_UP =0, GO_RIGHT =1, GO_DOWN =2, GO_LEFT =3;
 

@@ -1,8 +1,8 @@
 class Photo {
   boolean isAlive;
   float x=random(400, 800), y=-30, x2=0;
-  float w = 30;
-  float h = 30;
+  float w = 40;
+  float h = 40;
   float xSpeed =1;
   float photoStartX =35;
   float photoEndX =-35;

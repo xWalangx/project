@@ -11,25 +11,27 @@ PImage bloodBar1, bloodBar2, bloodBar3, bloodBar4, bloodBar5;
 PImage mom1, mom2, dad1, dad2, girl1, girl2;
 PImage information1, information2;
 PImage eyeball, hand;
-PImage blood;
-PImage explain,stage1,stage2,stage3;
-PImage soundiconOFF,soundiconON,stopicon;
+PImage blood, shadow;
+PImage explain, stage1, stage2, stage3;
+PImage soundiconOFF, soundiconON, stopicon;
+PImage win, story1_1, story1_2, story1_3;
+PImage story2_1, story2_2, story2_3;
+PImage story3_1, story3_2, story3_3, story4_1, story4_2, story4_3, story4_4, story4_5;
 
-final int GAME_START = 0, GAME_RUN1 = 1, GAME_RUN2 = 2, GAME_RUN3 = 3, GAME_OVER = 4, GAME_WIN = 5, GAME_INFO = 6;
-int gameState = 0;
+final int GAME_START = 0, GAME_RUN1 = 1, GAME_RUN2 = 2, GAME_RUN3 = 3, GAME_OVER = 4, GAME_WIN = 5, GAME_INFO = 6, GAME_STORY=7;
+int gameState = 3;
 int currentState;
 final int GO_UP =0, GO_RIGHT =1, GO_DOWN =2, GO_LEFT =3;
 
 final int stageShowTime = 300;
-int stageTime,explainTime;
+int time;
 
 boolean leftState = false;
 boolean rightState = false;
 boolean upState = false;
 boolean startChase = false;
 boolean loserHurt = false;
-boolean disPlayExplain = true;
-boolean disPlayStage =true;
+boolean disPlay = true;
 
 final float BACKGROUND1_WIDTH=1600;
 final float BACKGROUND2_WIDTH=2000;
@@ -42,8 +44,8 @@ int bloodDisplayBoundary;
 //sound
 import ddf.minim.*;
 Minim minim;
-AudioPlayer sound_clock, sound_end, song;
-AudioSample sound_ghost, sound_hurt;
+AudioPlayer sound_clock, sound_end, song, sound_win;
+AudioSample sound_ghost, sound_hurt, sound_jump, sound_burp, sound_powerUp;
 
 Loser loser=new Loser();
 Mom mom = new Mom();
@@ -65,13 +67,13 @@ Noodle[] noodles = new Noodle[2];
 Photo photo = new Photo();
 
 void setup() {
-  size(800, 480);
+  size(800, 480, P2D);
   startScene = loadImage("img/startScene/startScene.png");
   startButton1 = loadImage("img/startScene/startButton1.png");
   startButton2 = loadImage("img/startScene/startButton2.png");
   background1 = loadImage("img/background/background1.jpg");
-  background2 = loadImage("img/background2.jpg");
-  background3 = loadImage("img/background3.jpg");
+  background2 = loadImage("img/background/background2.jpg");
+  background3 = loadImage("img/background/background3.jpg");
   loseScene1 = loadImage("img/loseScene/gameLose1.png");
   loseScene2 = loadImage("img/loseScene/gameLose2.png");
   loseScene3 = loadImage("img/loseScene/gameLose3.png");
@@ -111,11 +113,28 @@ void setup() {
   stage3 = loadImage("img/startScene/stage3.png");
   eyeball = loadImage("img/horribleItem/eyeBall.png");
   hand = loadImage("img/horribleItem/handlong.png");
+  shadow = loadImage("img/shadow.png");
+  win = loadImage("img/background/win.png");
 
   //bloodItem
   beerImg = loadImage("img/bloodItem/beerTaiwan.png");
   noodleImg = loadImage("img/bloodItem/instantNoodles.png");
   photoImg = loadImage("img/bloodItem/photo.png");
+  //story
+  story1_1 = loadImage("img/story/story1-1.png");
+  story1_2 = loadImage("img/story/story1-2.png");
+  story1_3 = loadImage("img/story/story1-3.png");
+  story2_1 = loadImage("img/story/story2-1.png");
+  story2_2 = loadImage("img/story/story2-2.png");
+  story2_3 = loadImage("img/story/story2-3.png");
+  story3_1 = loadImage("img/story/story3-1.png");
+  story3_2 = loadImage("img/story/story3-2.png");
+  story3_3 = loadImage("img/story/story3-3.png");
+  story4_1 = loadImage("img/story/story4-1.png");
+  story4_2 = loadImage("img/story/story4-2.png");
+  story4_3 = loadImage("img/story/story4-3.png");
+  story4_4 = loadImage("img/story/story4-4.png");
+  story4_5 = loadImage("img/story/story4-5.png");
 
   //sound
   minim = new Minim(this);
@@ -124,13 +143,17 @@ void setup() {
   song = minim.loadFile("sound/THE OMEN.mp3");
   sound_hurt = minim.loadSample("sound/hurt.mp3", 128);
   sound_ghost = minim.loadSample("sound/ghost_attack.mp3", 128);
+  sound_jump = minim.loadSample("sound/jump.mp3", 128);
+  sound_powerUp = minim.loadSample("sound/powerup.mp3", 128);
+  sound_burp = minim.loadSample("sound/burp.mp3", 128);
+  sound_win = minim.loadFile("sound/win.mp3");
   //blood
   blood = loadImage("img/blood.png");
   //icons
   soundiconOFF = loadImage("img/icons/soundiconOFF.png");
   soundiconON = loadImage("img/icons/soundiconON.png");
   stopicon = loadImage("img/icons/stopicon.png");
-  
+
 
 
   //start scene initX
@@ -172,15 +195,16 @@ void setup() {
     beers[i]= new Beer(newX, newY, newXSpeed);
   }
   //Display time
-  stageTime = 420;
-  explainTime = 300;
+  time=5*3*60;
+  //start scene sound
+  sound_clock.loop();
 }
 
 void draw() {
   switch(gameState) {
   case GAME_START:
     //backgroundsound
-    sound_clock.play();
+    //sound_clock.play();
     //display start image
     image(startScene, 0, 0);
     //start button
@@ -188,7 +212,7 @@ void draw() {
     if (mouseX>=345 && mouseX<=470 && mouseY>=200 && mouseY<=235) {
       image(startButton2, 0, 0);
       if (mousePressed) {
-        gameState=GAME_RUN1;
+        gameState=GAME_STORY;
       }
     }
     //running people
@@ -203,11 +227,12 @@ void draw() {
   case GAME_RUN1:
     //state
     currentState = GAME_RUN1;
-    
+
     //backgroundsound
     sound_clock.pause();
     sound_end.pause();
     song.play();
+    sound_win.pause();
     bloodDisplayBoundary=1170;
     //back Ground translate
     if (loser.x >= 1170) {
@@ -258,10 +283,11 @@ void draw() {
     //check game state
     if (loser.x>=1510) {
       loser.reset();
-      gameState = GAME_RUN2;
+      gameState = GAME_STORY;
       startChase=false;
       song.pause();
-      disPlayStage = true;
+      sound_clock.loop();
+      disPlay = true;
     }
     popMatrix();
     //end of translate
@@ -281,18 +307,14 @@ void draw() {
       image(bloodBar5, 0, 0);
     }
     //info icon
-    image(stopicon,760,10);
+    image(stopicon, 760, 10);
     if (mouseX>=760 && mouseX<=790 && mouseY>=10 && mouseY<=40) {
       //image(information2, 0, 0);
       if (mousePressed) {
         gameState=GAME_INFO;
       }
     }
-    //show explain and stage name
-    stageShow(stage1);
-    explainShow(explain);
-    
-    
+
 
     break;
 
@@ -300,6 +322,7 @@ void draw() {
     //state
     currentState = GAME_RUN2;
     //background sound
+    sound_clock.pause();
     sound_end.pause();
     song.play();
     bloodDisplayBoundary =1170+400;
@@ -352,10 +375,11 @@ void draw() {
     if (loser.x>=BACKGROUND2_WIDTH-loser.w) {
       //if loser reach the end
       loser.reset();
-      gameState=GAME_RUN3;
+      sound_clock.loop();
+      gameState=GAME_STORY;
       startChase = false;
       song.pause();
-      disPlayStage = true;
+      disPlay = true;
     }
 
     popMatrix();
@@ -374,16 +398,13 @@ void draw() {
       image(bloodBar5, 0, 0);
     }
     //info icon
-    image(stopicon,760,10);
+    image(stopicon, 760, 10);
     if (mouseX>=760 && mouseX<=790 && mouseY>=10 && mouseY<=40) {
       //image(information2, 0, 0);
       if (mousePressed) {
         gameState=GAME_INFO;
       }
     }
-    //show stage
-    stageShow(stage2);
-
 
 
     break;
@@ -392,6 +413,7 @@ void draw() {
     //state
     currentState = GAME_RUN3;
     //background sound
+    sound_clock.pause();
     sound_end.pause();
     song.play();
     bloodDisplayBoundary=2400-430;
@@ -458,10 +480,11 @@ void draw() {
     //check game state
     if (loser.x>=BACKGROUND3_WIDTH-loser.w) {
       loser.reset();
-      gameState = GAME_WIN;
+      sound_clock.loop();
+      gameState = GAME_STORY;
     }
     //info icon
-    image(stopicon,760,10);
+    image(stopicon, 760, 10);
     if (mouseX>=760 && mouseX<=790 && mouseY>=10 && mouseY<=40) {
       //image(information2, 0, 0);
       if (mousePressed) {
@@ -469,7 +492,7 @@ void draw() {
       }
     }
     //show stage
-    stageShow(stage3);
+    //stageShow(stage3);
 
 
     break;
@@ -526,14 +549,53 @@ void draw() {
     break;
 
   case GAME_WIN:
+    image(win, 0, 0);
+    song.pause();
+    //sound_win.play();
+    if (mouseX>=345 && mouseX<=460 && mouseY>=405 && mouseY<=445) {
+      image(returnButton, 0, 0);
+      if (mousePressed) {
+        //changee state
+        sound_win.pause();
+        currentState = GAME_START;
+        time=5*3*60;
+        gameState=GAME_START;
+        //reset
+        loser.reset();
+        loser.health=5;
+        backGroundMoveX=0;
+        mom.reset();
+        dad.reset();
+        girl.reset();
+        startChase=false;
+        eyeball1.reset();
+        eyeball2.reset();
+        eyeball3.reset();
+        for (Card i : cards) {
+          if (i == null) continue;
+          i.reset();
+        }
+        for (Noodle i : noodles) {
+          if (i == null) continue;
+          i.reset();
+        }
+        for (Beer i : beers) {
+          if (i == null) continue;
+          i.reset();
+        }
+        photo.reset();
+      }
+    }
+
 
     break;
 
   case GAME_INFO:
+    
     //display info image
     //image(information1, 0, 0);
-    image(explain,0,0);
-    image(stopicon,720,10);
+    image(explain, 0, 0);
+    image(stopicon, 720, 10);
     if (mouseX>=720 && mouseX<=750 && mouseY>=10 && mouseY<=40) {
       //image(information2, 0, 0);
       if (mousePressed) {
@@ -542,7 +604,86 @@ void draw() {
     }
 
     break;
-    
+
+  case GAME_STORY:
+    song.pause();
+    //stage one story
+    if (currentState==GAME_START) {
+      sound_clock.play();
+      //show explain and stage name
+      if (time>60*12) {
+        show(story1_1);
+      } else if (time>60*9) {
+        show(story1_2);
+      } else if (time>60*6) {
+        show(story1_3);
+      } else if (time>60*3) {
+        show(explain);
+      } else if (time>0) {
+        show(stage1);
+      } else {
+        gameState=GAME_RUN1;
+        time = 4*3*60;
+      }
+    }
+    //stage two story
+    if (currentState==GAME_RUN1) {
+
+      //show explain and stage name
+      if (time>60*9) {
+        show(story2_1);
+      } else if (time>60*6) {
+        show(story2_2);
+      } else if (time>60*3) {
+        show(story2_3);
+      } else if (time>0) {
+        show(stage2);
+      } else {
+        gameState=GAME_RUN2;
+        time= 4*3*60;
+      }
+    }
+    //stage three story
+    if (currentState==GAME_RUN2) {
+
+      //show explain and stage name
+      if (time>60*9) {
+        show(story3_1);
+      } else if (time>60*6) {
+        show(story3_2);
+      } else if (time>60*3) {
+        show(story3_3);
+      } else if (time>0) {
+        show(stage3);
+      } else {
+        gameState=GAME_RUN3;
+        time = 5*3*60;
+      }
+    }
+    //stage win story
+    if (currentState==GAME_RUN3) {
+
+      //show explain and stage name
+      if (time>60*12) {
+        show(story4_1);
+      } else if (time>60*9) {
+        show(story4_2);
+      } else if (time>60*6) {
+        show(story4_3);
+      } else if (time>60*3) {
+        show(story4_4);
+      }else if(time>0){
+        show(story4_5);
+      }else {
+        gameState=GAME_WIN;
+        sound_clock.pause();
+        sound_win.rewind();
+        sound_win.play();
+      }
+    }
+
+
+    break;
   }
 }
 
@@ -564,6 +705,9 @@ void keyPressed() {
       rightState = true;
       break;
     case UP:
+      if (loser.y>=280) {
+        sound_jump.trigger();
+      }
       upState = true;
       break;
     }
@@ -582,23 +726,12 @@ void keyReleased() {
   }
 }
 
-void stageShow(PImage img1){
-  if(disPlayStage){
-      stageTime--;
-      image(img1,0,0) ;
-    } 
-    if(stageTime<0){
-      disPlayStage = false;
-      stageTime=120;
-    }
-}
-void explainShow(PImage img2){
-  if(disPlayExplain){
-      explainTime--;
-      image(img2,0,0) ;
-    } 
-    if(explainTime<0){
-      disPlayExplain = false;
-      explainTime=300;
-    }
+void show(PImage img1) {
+  if (disPlay) {
+    time--;
+    image(img1, 0, 0) ;
+  } 
+  if (time<0) {
+    disPlay = false;
+  }
 }
